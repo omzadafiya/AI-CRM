@@ -8,7 +8,6 @@ const path = require('path');
 const axios = require('axios');
 
 const cloudinary = require('cloudinary').v2;
-const streamifier = require('streamifier'); // Note: Reusing Buffer directly with upload_stream is also possible
 
 // Cloudinary Configuration
 cloudinary.config({
