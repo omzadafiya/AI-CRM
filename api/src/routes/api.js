@@ -8,7 +8,7 @@ const path = require('path');
 const axios = require('axios');
 
 const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const streamifier = require('streamifier'); // Note: Reusing Buffer directly with upload_stream is also possible
 
 // Cloudinary Configuration
 cloudinary.config({
@@ -17,16 +17,23 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Cloudinary Multer Storage
-const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-        folder: 'ai-crm-products',
-        allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
-    },
-});
-
+// Using memory storage for Vercel (no local disk)
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
+
+// Helper to handle Cloudinary upload from buffer
+const uploadToCloudinary = (buffer) => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder: 'ai-crm-products' },
+            (error, result) => {
+                if (result) resolve(result.secure_url);
+                else reject(error);
+            }
+        );
+        stream.end(buffer);
+    });
+};
 
 /**
  * 🤖 11za / WHATSAPP WEBHOOK ENDPOINT
@@ -87,8 +94,8 @@ router.post('/products', upload.single('image'), async (req, res) => {
     try {
         const productData = { ...req.body };
         if (req.file) {
-            // cloud_storage: cloudinary returns the URL in req.file.path
-            productData.imageUrl = req.file.path;
+            // cloud_upload: using local buffer to upload to cloudinary
+            productData.imageUrl = await uploadToCloudinary(req.file.buffer);
         }
         const newProduct = new Product(productData);
         await newProduct.save();
@@ -103,8 +110,8 @@ router.patch('/products/:id', upload.single('image'), async (req, res) => {
     try {
         const updateData = { ...req.body };
         if (req.file) {
-            // cloud_storage: cloudinary returns the URL in req.file.path
-            updateData.imageUrl = req.file.path;
+            // cloud_upload: using local buffer to upload to cloudinary
+            updateData.imageUrl = await uploadToCloudinary(req.file.buffer);
         }
         const product = await Product.findByIdAndUpdate(req.params.id, updateData, { returnDocument: 'after' });
         res.json(product);
