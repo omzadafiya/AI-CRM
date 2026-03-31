@@ -7,15 +7,25 @@ const multer = require('multer');
 const path = require('path');
 const axios = require('axios');
 
-// Multer Storage Configuration
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+// Cloudinary Configuration
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
+
+// Cloudinary Multer Storage
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'ai-crm-products',
+        allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+    },
+});
+
 const upload = multer({ storage: storage });
 
 /**
@@ -77,9 +87,8 @@ router.post('/products', upload.single('image'), async (req, res) => {
     try {
         const productData = { ...req.body };
         if (req.file) {
-            const protocol = req.protocol;
-            const host = req.get('host');
-            productData.imageUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
+            // cloud_storage: cloudinary returns the URL in req.file.path
+            productData.imageUrl = req.file.path;
         }
         const newProduct = new Product(productData);
         await newProduct.save();
@@ -94,9 +103,8 @@ router.patch('/products/:id', upload.single('image'), async (req, res) => {
     try {
         const updateData = { ...req.body };
         if (req.file) {
-            const protocol = req.protocol;
-            const host = req.get('host');
-            updateData.imageUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
+            // cloud_storage: cloudinary returns the URL in req.file.path
+            updateData.imageUrl = req.file.path;
         }
         const product = await Product.findByIdAndUpdate(req.params.id, updateData, { returnDocument: 'after' });
         res.json(product);
