@@ -18,10 +18,9 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use('/uploads', express.static('uploads'));
 
-// Routes
 // Note: In Vercel, the 'api/' folder is already mounted at '/api'
 // So we use '/' here to avoid double prefixing like '/api/api'
-app.use('/api', apiRoutes); 
+app.use('/', apiRoutes);
 
 // Simple health check
 app.get('/', (req, res) => {
