@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../config/api';
 import { ShoppingBag, Box, ClipboardList, TrendingUp, Zap, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -18,7 +19,7 @@ const Dashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/stats');
+      const res = await axios.get(`${API_BASE_URL}/api/stats`);
       setStats(res.data);
     } catch (error) {
       console.error("Error fetching stats:", error);

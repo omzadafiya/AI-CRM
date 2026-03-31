@@ -90,7 +90,9 @@ router.post('/products', upload.single('image'), async (req, res) => {
     try {
         const productData = { ...req.body };
         if (req.file) {
-            productData.imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+            const protocol = req.protocol;
+const host = req.get('host');
+productData.imageUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
         }
         const newProduct = new Product(productData);
         await newProduct.save();
@@ -105,7 +107,9 @@ router.patch('/products/:id', upload.single('image'), async (req, res) => {
     try {
         const updateData = { ...req.body };
         if (req.file) {
-            updateData.imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+            const protocol = req.protocol;
+const host = req.get('host');
+updateData.imageUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
         }
         const product = await Product.findByIdAndUpdate(req.params.id, updateData, { returnDocument: 'after' });
         res.json(product);

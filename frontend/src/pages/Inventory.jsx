@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../config/api';
 import { Search, Plus, Trash2, Edit, X, AlertTriangle, Upload, Image as ImageIcon, Maximize2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -24,7 +25,7 @@ const Inventory = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/products');
+      const res = await axios.get(`${API_BASE_URL}/api/products`);
       setProducts(res.data);
       setLoading(false);
     } catch (err) {
@@ -74,12 +75,12 @@ const Inventory = () => {
 
     try {
       if (editingId) {
-        await axios.patch(`http://localhost:5000/api/products/${editingId}`, data, {
+        await axios.patch(`${API_BASE_URL}/api/products/${editingId}`, data, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         toast.success('Product updated successfully!');
       } else {
-        await axios.post('http://localhost:5000/api/products', data, {
+        await axios.post(`${API_BASE_URL}/api/products`, data, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         toast.success('Product added successfully!');
@@ -99,7 +100,7 @@ const Inventory = () => {
   const handleDelete = async () => {
     if (!deleteConfirmationId) return;
     try {
-      await axios.delete(`http://localhost:5000/api/products/${deleteConfirmationId}`);
+      await axios.delete(`${API_BASE_URL}/api/products/${deleteConfirmationId}`);
       toast.success('Product deleted successfully!');
       setDeleteConfirmationId(null);
       fetchProducts();
