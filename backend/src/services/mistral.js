@@ -1,5 +1,6 @@
 let mistralInstance = null;
 
+
 async function getMistral() {
     if (!mistralInstance) {
         const { Mistral } = await import('@mistralai/mistralai');
@@ -128,7 +129,7 @@ const processUserMessage = async (message, phone) => {
             for (const toolCall of responseMessage.tool_calls) {
                 const functionName = toolCall.function.name;
                 const args = JSON.parse(toolCall.function.arguments);
-                
+
                 let result;
                 if (functionName === "checkInventory") {
                     result = await checkInventory(args);
