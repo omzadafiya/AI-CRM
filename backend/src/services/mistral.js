@@ -1,10 +1,17 @@
-const { Mistral } = require('@mistralai/mistralai');
+let mistralInstance = null;
+
+async function getMistral() {
+    if (!mistralInstance) {
+        const { Mistral } = await import('@mistralai/mistralai');
+        mistralInstance = new Mistral({
+            apiKey: process.env.MISTRAL_API_KEY,
+        });
+    }
+    return mistralInstance;
+}
+
 const Product = require('../models/Product');
 const Booking = require('../models/Booking');
-
-const mistral = new Mistral({
-    apiKey: process.env.MISTRAL_API_KEY,
-});
 
 /**
  * AI function to search products in MongoDB
@@ -105,6 +112,8 @@ const processUserMessage = async (message, phone) => {
             { role: "user", content: `Customer phone: ${phone}. Message: ${message}` }
         ];
 
+        const mistral = await getMistral();
+
         const response = await mistral.chat.complete({
             model: "mistral-large-latest",
             messages: messages,
@@ -135,6 +144,7 @@ const processUserMessage = async (message, phone) => {
                 });
             }
 
+            const mistral = await getMistral();
             const secondResponse = await mistral.chat.complete({
                 model: "mistral-large-latest",
                 messages: messages,
